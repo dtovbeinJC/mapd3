@@ -11,6 +11,7 @@ import Brush from "./charts/brush.js"
 import Hover from "./charts/hover.js"
 import Interactors from "./charts/interactors.js"
 import {colors} from "./charts/helpers/colors.js"
+import Sunburst from "./charts/sunburst.js"
 
 export {
   Chart,
@@ -25,5 +26,6 @@ export {
   Brush,
   Hover,
   Interactors,
-  colors
+  colors,
+  Sunburst
 }

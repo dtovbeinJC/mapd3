@@ -1,12 +1,15 @@
 import * as d3 from "./helpers/d3-service"
 
 import {colors} from "./helpers/colors"
+
+
 import {keys} from "./helpers/constants"
 import {cloneData, override, throttle, rebind} from "./helpers/common"
 
 import Scale from "./scale"
 import Line from "./line"
 import Bar from "./bar"
+import Sunburst from "./sunburst"
 import Axis from "./axis"
 import Tooltip from "./tooltip"
 import Legend from "./legend"
@@ -31,7 +34,7 @@ export default function Chart (_container) {
     width: 800,
     height: 500,
     keyType: "time",
-    chartType: "line", // line, area, stackedLine, stackedArea
+    chartType: null, // line, area, stackedLine, stackedArea
     ease: d3.easeLinear,
 
     // intro animation
@@ -100,7 +103,8 @@ export default function Chart (_container) {
     // label
     xLabel: "",
     yLabel: "",
-    y2Label: ""
+    y2Label: "",
+    fileData: null
   }
 
   let scales = {
@@ -140,9 +144,11 @@ export default function Chart (_container) {
   const dataManager = DataManager()
 
   function render () {
+
     buildSVG()
 
     if (dataObject.dataBySeries) {
+      console.log("buildChart")
       buildChart()
     }
 
@@ -150,25 +156,48 @@ export default function Chart (_container) {
   }
 
   function buildSVG () {
+    console.log(`chart > buildSVG ${config.chartType}`);
+
     const w = config.width === "auto" ? cache.container.clientWidth : config.width
     const h = config.height === "auto" ? cache.container.clientHeight : config.height
     cache.chartWidth = Math.max(w - config.margin.left - config.margin.right, 0)
     cache.chartHeight = Math.max(h - config.margin.top - config.margin.bottom, 0)
 
+    let template;
+
     if (!cache.svg) {
-      const template = `<div class="mapd3 mapd3-container">
-        <div class="header-group"></div>
-        <svg class="chart">
-          <g class="chart-group"></g>
-          <g class="panel-group">
-            <rect class="panel-background"></rect>
-          </g>
-          <rect class="masking-rectangle"></rect>
-        </svg>
-      </div>`
+
+      //if (config.chartType === "line" || config.chartType === "area" || config.chartType === "stackedArea") {
+
+        template = `<div class="mapd3 mapd3-container">
+          <div class="header-group" style="display: none;"></div>
+            <svg class="chart">
+              <g class="chart-group"></g>
+              <g class="panel-group">
+                <rect class="panel-background"></rect>
+              </g>
+              <rect class="masking-rectangle"></rect>
+            </svg>
+        </div>`
+      //} else {
+        /*template = `<div id="main">
+          <div id="sequence"></div>
+          <div id="chart">
+            <div id="explanation" style="visibility: hidden;">
+              <span id="percentage"></span><br/>
+              of visits begin with this sequence of pages
+            </div>
+          </div>
+        </div>
+        <div id="sidebar">
+          <input type="checkbox" id="togglelegend"> Legend<br/>
+          <div id="legend" style="visibility: hidden;"></div>
+        </div>`*/
+      //}
 
       const base = d3.select(cache.container)
           .html(template)
+
 
       cache.container = base.select(".mapd3-container")
           .style("position", "relative")
@@ -183,9 +212,10 @@ export default function Chart (_container) {
 
       Object.assign(components, {
         scale: Scale(),
-        axis: Axis(cache.chart),
-        line: Line(cache.panel),
-        bar: Bar(cache.panel),
+        axis: (config.chartType === "line" || config.chartType === "area" || config.chartType === "stackedArea") ? Axis(cache.chart) : null,
+        line: (config.chartType === "line" || config.chartType === "area" || config.chartType === "stackedArea") ? Line(cache.panel) : null,
+        bar: (config.chartType === "bar") ? Bar(cache.panel) : null,
+        sunburst: (config.chartType === "sunburst") ? Sunburst(cache.panel) : null,
         tooltip: Tooltip(cache.container),
         legend: Legend(cache.container),
         brush: Brush(cache.panel),
@@ -204,8 +234,10 @@ export default function Chart (_container) {
         onBrushRangeEditor: rebind(components.brushRangeEditor),
         onLabel: rebind(components.label),
         onPanel: rebind(dispatcher)
-      })
+      });
+
     }
+
 
     cache.svg
       .attr("width", config.width)
@@ -227,28 +259,64 @@ export default function Chart (_container) {
   }
 
   function buildChart () {
-    components.scale
-      .setConfig(config)
-      .setData(dataObject)
-    scales = components.scale.getScales()
 
-    components.axis
-      .setConfig(config)
-      .setScales(scales)
-      .drawAxis()
-      .drawGridLines()
+    if (components.scale) {
+      components.scale
+        .setConfig(config)
+        .setData(dataObject)
+      scales = components.scale.getScales()
+    }
 
-    components.line
-      .setConfig(config)
-      .setScales(scales)
-      .setData(dataObject)
-      .drawMarks()
+    if (components.axis) {
+      components.axis
+        .setConfig(config)
+        .setScales(scales)
+        .drawAxis()
+        .drawGridLines()
+    }
 
-    components.bar
-      .setConfig(config)
-      .setScales(scales)
-      .setData(dataObject)
-      .drawMarks()
+    /*
+    // TODO refactor 'config.chartType'
+    if (components[config.chartType]) {
+      components[config.chartType]
+        .setConfig(config)
+        .setScales(scales)
+        .loadData()
+        .setData(dataObject)
+        .drawMarks()
+    }
+    */
+
+
+
+    if(components.line) {
+      components.line
+        .setConfig(config)
+        .setScales(scales)
+        .loadData()
+        .setData(dataObject)
+        .drawMarks()
+    }
+
+    if(components.bar) {
+      components.bar
+        .setConfig(config)
+        .setScales(scales)
+        .loadData()
+        .setData(dataObject)
+        .drawMarks()
+    }
+
+    if(components.sunburst) {
+      console.log("ENTRA A SUNBURST!!!!")
+      components.sunburst
+        .setConfig(config)
+        .setScales(scales)
+        .loadData()
+        .setData(dataObject)
+        //.drawMarks()
+    }
+
 
     components.tooltip
       .setConfig(config)
@@ -320,11 +388,25 @@ export default function Chart (_container) {
   }
 
   function setData (_data) {
+    console.log(_data);
     dataObject.data = cloneData(_data[keys.SERIES])
     const cleanedData = dataManager.cleanData(_data, config.keyType)
     Object.assign(dataObject, cleanedData)
 
     render()
+    return this
+  }
+
+  function loadData () {
+    if(config.fileData === null) throw new Error("There is no file to be loaded. `fileData` variable should be set.");
+
+    d3.text(config.fileData, (text) => {
+        console.log("entra")
+        let csv = d3.csvParseRows(text)
+        let json = buildHierarchy(csv)
+        console.log(csv)
+        //createVisualization(json);
+      })
     return this
   }
 
@@ -392,12 +474,64 @@ export default function Chart (_container) {
     cache.svg.on(".", null).remove()
   }
 
-  return {
-    render,
-    setConfig,
-    setData,
-    on,
-    destroy,
-    getEvents
+  function csvToJson (csv) {
+    let json = {"series": []};
+
+    let labels = [];
+    let addLabel;
+
+    csv.forEach((row, index) => {
+      if(index === 0) {
+        labels.push(getObjectToPush(row[0], index, 0, []));
+      } else {
+        addLabel = true;
+        labels.forEach(label => {
+          if(row[0] === label["label"]) {
+            addLabel = false;
+          }
+        });
+
+        if(addLabel) {
+          labels.push(getObjectToPush(row[0], index, 0, []));
+        }
+      }
+    });
+
+    let __index__;
+    labels.forEach((label, index) => {
+      __index__ = 0;
+      csv.forEach((key, value) => {
+        if(label["label"] === key[0]) {
+          label["values"].push({
+            value: key[1],
+            key: __index__
+          });
+          __index__++;
+        }
+      })
+    })
+
+    json["series"] = labels;
+    return json;
+  }
+
+  function getObjectToPush(label, id, group, values) {
+    return {
+      label,
+      id,
+      group,
+      values
+    };
+  }
+
+    return {
+      render,
+      setConfig,
+      setData,
+      on,
+      destroy,
+      getEvents,
+      loadData,
+      csvToJson
   }
 }

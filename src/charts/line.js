@@ -34,7 +34,8 @@ export default function Line (_container) {
     dataBySeries: null,
     groupKeys: null,
     stack: null,
-    stackData: null
+    stackData: null,
+    fileData: ""
   }
 
   const getColor = (d) => scales.colorScale(d[keys.ID])
@@ -160,10 +161,17 @@ export default function Line (_container) {
     return this
   }
 
+  function loadData () {
+    console.log("load data")
+    //console.log(`load: ${config.fileData}`)
+    return this
+  }
+
   return {
     setConfig,
     setScales,
     setData,
-    drawMarks
+    drawMarks,
+    loadData
   }
 }

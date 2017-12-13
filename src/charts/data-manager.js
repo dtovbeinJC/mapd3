@@ -72,7 +72,7 @@ export default function DataManager () {
     return cache.data
   }
 
-  function cleanData (_data, _keyType) {
+  function cleanData (_data, _keyType, _dataType) {
     const dataBySeries = cloneData(_data[keys.SERIES])
     const flatData = []
 
@@ -189,6 +189,18 @@ export default function DataManager () {
     return this
   }
 
+  function loadCSVData (filename) {
+    return new Promise((resolve, reject) => {
+      d3.text(filename, (text) => {
+        if(text) {
+          resolve(d3.csvParseRows(text));
+        } else {
+          reject(`Cannot load ${filename}`);
+        }
+      })
+    })
+  }
+
   return {
     generateTestDataset,
     generateSeries,
@@ -196,7 +208,8 @@ export default function DataManager () {
     getNearestDataPoint,
     filterByDate,
     filterByKey,
-    setConfig
+    setConfig,
+    loadCSVData
   }
 }
 

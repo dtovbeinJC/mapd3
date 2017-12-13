@@ -33,5 +33,13 @@ export {
 	scaleBand,
 	scaleLinear,
 	scaleOrdinal,
-	brushX
+	brushX,
+  arc,
+  partition,
+  csvParseRows,
+  text,
+  hierarchy,
+  keys,
+  entries,
+  selectAll
 } from "d3/build/d3"

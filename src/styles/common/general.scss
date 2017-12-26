@@ -1,3 +1,9 @@
+body {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+}
+
 [contenteditable]:focus {
     outline: 1px solid #ddd;
 }

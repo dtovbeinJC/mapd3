@@ -161,17 +161,10 @@ export default function Line (_container) {
     return this
   }
 
-  function loadData () {
-    console.log("load data")
-    //console.log(`load: ${config.fileData}`)
-    return this
-  }
-
   return {
     setConfig,
     setScales,
     setData,
-    drawMarks,
-    loadData
+    drawMarks
   }
 }

@@ -1,24 +1,8 @@
 import * as d3 from "./helpers/d3-service"
-
 import {keys} from "./helpers/constants"
-import {cloneData, override, throttle, rebind} from "./helpers/common"
+import {override} from "./helpers/common"
 
-import Scale from "./scale"
-//import Line from "./line"
-//import Bar from "./bar"
-//import Sunburst from "./sunburst"
-import Axis from "./axis"
-import Tooltip from "./tooltip"
-import Legend from "./legend"
-import Brush from "./brush"
-import Hover from "./hover"
-import Binning from "./binning"
-import DomainEditor from "./domain-editor"
-import BrushRangeEditor from "./brush-range-editor"
-import Label from "./label"
-//import DataManager from "./data-manager"
-
-export default function Sunburst (_container) {
+export default function Sunburst(_container) {
 
   let config = {
     margin: {
@@ -45,24 +29,21 @@ export default function Sunburst (_container) {
     chartHeight: null
   }
 
-  let containers = { }
+  let containers = {}
 
-  let data = { }
+  let data = {}
 
   Object.assign(config, {
     radius: Math.min(config.width, config.height) / 2
-  })
-
-  //let components = {}
+  });
 
   let b = {
     w: 75,
     h: 30,
     s: 3,
     t: 10
-  }
+  };
 
-  /*
   let colors = {
     "(MK)": "#5687d1",
     "(JJ GO)": "#7b615c",
@@ -73,17 +54,8 @@ export default function Sunburst (_container) {
     "(GG GO)": "#a7bb7c",
     "(CJ IOS)": "#58bb66"
   };
-  */
 
-  let colors = {
-    "Boca Juniors": "#1311c3",
-    "Riber": "#de4a40",
-    "Newells old boys": "#f4ff81",
-    "Huracan": "#c3b91e",
-    "Velez Sarfield": "#5687d1",
-  };
-
-  let totalSize = 10
+  let totalSize = 10;
 
   const getColor = (d) => scales.colorScale(d[keys.ID]);
 
@@ -91,16 +63,21 @@ export default function Sunburst (_container) {
     .size([2 * Math.PI, config.radius * config.radius]);
 
   const arc = d3.arc()
-    .startAngle(function(d) { return d.x0; })
-    .endAngle(function(d) { return d.x1; })
-    .innerRadius(function(d) { return Math.sqrt(d.y0); })
-    .outerRadius(function(d) { return Math.sqrt(d.y1); });
-
-
+    .startAngle(function (d) {
+      return d.x0;
+    })
+    .endAngle(function (d) {
+      return d.x1;
+    })
+    .innerRadius(function (d) {
+      return Math.sqrt(d.y0);
+    })
+    .outerRadius(function (d) {
+      return Math.sqrt(d.y1);
+    })
   buildSVG();
 
-
-  function buildSVG () {
+  function buildSVG() {
     const w = config.width === "auto" ? cache.container.clientWidth : config.width
     const h = config.height === "auto" ? cache.container.clientHeight : config.height
     cache.chartWidth = Math.max(w - config.margin.left - config.margin.right, 0)
@@ -109,89 +86,95 @@ export default function Sunburst (_container) {
     let template = null;
 
     if (!cache.svg) {
-      template = `<div id="main">
-        <div id="sequence"></div>
-        <div id="chart">
-          <div id="explanation" style="visibility: hidden;">
-            <span id="percentage"></span><br/>
+      template = `<div class="sunburst">
+        <div class="sequence"></div>
+        <div class="chart">
+          <div class="explanation" style="visibility: hidden;">
+            <span class="percentage"></span><br/>
             of visits begin with this sequence of pages
           </div>
         </div>
       </div>
-      <div id="sidebar">
-        <input type="checkbox" id="togglelegend"> Legend<br/>
-        <div id="legend" style="visibility: hidden;"></div>
-      </div>`
+      <div class="sidebar">
+        <input type="checkbox" class="togglelegend"> Legend<br/>
+        <div class="legend" style="visibility: hidden;"></div>
+      </div>`;
 
       containers.base = d3.select(cache.container)
         .html(template)
 
-      containers.vis = containers.base.select("#chart").append("svg:svg")
+      containers.vis = containers.base.select(".chart").append("svg:svg")
         .attr("width", config.width)
         .attr("height", config.height)
         .append("svg:g")
         .attr("id", "container")
         .attr("transform", "translate(" + config.width / 2 + "," + config.height / 2 + ")");
 
-      const h = parseInt(containers.base.select("#explanation").style("height"));
-      const w = parseInt(containers.base.select("#explanation").style("width"));
+      const h = parseInt(containers.base.select(".explanation").style("height"));
+      const w = parseInt(containers.base.select(".explanation").style("width"));
 
-      containers.base.select("#explanation")
-        .style("top", `${config.height/2 - h/2}px`)
-        .style("left", `${config.width/2 - w/2}px`);
+      containers.base.select(".explanation")
+        .style("top", `${config.height / 2 - h / 2}px`)
+        .style("left", `${config.width / 2 - w / 2}px`);
     }
     return this
   }
 
-  function setConfig (_config) {
+  function setConfig(_config) {
     config = override(config, _config)
     return this
   }
 
-  function setScales (_scales) {
+  function setScales(_scales) {
     scales = override(scales, _scales)
     return this
   }
 
-  function setData (_data) {
+  function setData(_data) {
     data = Object.assign({}, data, _data);
     render(data);
     return this
   }
 
-
   /**
-    Main function to draw and set up the visualization, once we have the data.
-    @param data: Parsed data
+   Main function to draw and set up the visualization, once we have the data.
+   @param data: Parsed data
    **/
   function render(data) {
-
     initializeBreadcrumbTrail();
     drawLegend();
 
-    containers.base.select("#togglelegend").on("click", toggleLegend);
+    containers.base.select(".togglelegend").on("click", toggleLegend);
 
     containers.vis.append("svg:circle")
       .attr("r", config.radius)
       .style("opacity", 0);
 
     let root = d3.hierarchy(data)
-      .sum(function(d) { return d.size; })
-      .sort(function(a, b) { return b.value - a.value; });
+      .sum(function (d) {
+        return d.size;
+      })
+      .sort(function (a, b) {
+        return b.value - a.value;
+      });
 
     let nodes = partition(root).descendants()
-      .filter(function(d) {
-        return (d.x1 - d.x0 > 0.005); // 0.005 radians = 0.29 degrees
+      .filter(function (d) {
+        return (d.x1 - d.x0 > 0.005);
       });
 
     let path = containers.vis.data([data]).selectAll("path")
       .data(nodes)
       .enter()
       .append("svg:path")
-      .attr("display", function(d) { return d.depth ? null : "none"; })
+      .attr("display", function (d) {
+        return d.depth ? null : "none";
+      })
       .attr("d", arc)
       .attr("fill-rule", "evenodd")
-      .style("fill", function(d) { return colors[d.data.name]; })
+      .style("fill", function (d) {
+        return colors[d.data.name];
+      })
       .style("opacity", 1)
       .on("mouseover", mouseover);
 
@@ -200,9 +183,8 @@ export default function Sunburst (_container) {
     totalSize = path.datum().value;
   };
 
-
-  function initializeBreadcrumbTrail () {
-    let trail = containers.base.select("#sequence")
+  function initializeBreadcrumbTrail() {
+    let trail = containers.base.select(".sequence")
       .append("svg:svg")
       .attr("width", config.width)
       .attr("height", 50)
@@ -213,7 +195,7 @@ export default function Sunburst (_container) {
       .style("fill", "#000");
   }
 
-  function breadcrumbPoints (d, i) {
+  function breadcrumbPoints(d, i) {
     let points = [];
     points.push("0,0");
     points.push(b.w + ",0");
@@ -226,37 +208,41 @@ export default function Sunburst (_container) {
     return points.join(" ");
   }
 
-// Update the breadcrumb trail to show the current sequence and percentage.
-  function updateBreadcrumbs (nodeArray, percentageString) {
-
-    // Data join; key function combines name and depth (= position in sequence).
+  /**
+   * Update the breadcrumb trail to show the current sequence and percentage.
+   * @param nodeArray
+   * @param percentageString
+   */
+  function updateBreadcrumbs(nodeArray, percentageString) {
     let trail = d3.select("#trail")
       .selectAll("g")
-      .data(nodeArray, function(d) { return d.data.name + d.depth; });
+      .data(nodeArray, function (d) {
+        return d.data.name + d.depth;
+      });
 
-    // Remove exiting nodes.
     trail.exit().remove();
 
-    // Add breadcrumb and label for entering nodes.
     let entering = trail.enter().append("svg:g");
 
     entering.append("svg:polygon")
       .attr("points", breadcrumbPoints)
-      .style("fill", function(d) { return colors[d.data.name]; });
+      .style("fill", function (d) {
+        return colors[d.data.name];
+      });
 
     entering.append("svg:text")
       .attr("x", (b.w + b.t) / 2)
       .attr("y", b.h / 2)
       .attr("dy", "0.35em")
       .attr("text-anchor", "middle")
-      .text(function(d) { return d.data.name; });
+      .text(function (d) {
+        return d.data.name;
+      });
 
-    // Merge enter and update selections; set position for all nodes.
-    entering.merge(trail).attr("transform", function(d, i) {
+    entering.merge(trail).attr("transform", function (d, i) {
       return "translate(" + i * (b.w + b.s) + ", 0)";
     });
 
-    // Now move and update the percentage at the end.
     d3.select("#trail").select("#endlabel")
       .attr("x", (nodeArray.length + 0.5) * (b.w + b.s))
       .attr("y", b.h / 2)
@@ -264,27 +250,23 @@ export default function Sunburst (_container) {
       .attr("text-anchor", "middle")
       .text(percentageString);
 
-    // Make the breadcrumb trail visible, if it's hidden.
     d3.select("#trail")
       .style("visibility", "visible");
-
   }
 
-  function drawLegend () {
-
-    // Dimensions of legend item: width, height, spacing, radius of rounded rect.
+  function drawLegend() {
     const legend_item = {
       w: 75, h: 30, s: 3, r: 3
     };
 
-    let legend = containers.base.select("#legend").append("svg:svg")
+    let legend = containers.base.select(".legend").append("svg:svg")
       .attr("width", legend_item.w)
       .attr("height", d3.keys(colors).length * (legend_item.h + legend_item.s));
 
     let g = legend.selectAll("g")
       .data(d3.entries(colors))
       .enter().append("svg:g")
-      .attr("transform", function(d, i) {
+      .attr("transform", function (d, i) {
         return "translate(0," + i * (legend_item.h + legend_item.s) + ")";
       });
 
@@ -293,18 +275,22 @@ export default function Sunburst (_container) {
       .attr("ry", legend_item.r)
       .attr("width", legend_item.w)
       .attr("height", legend_item.h)
-      .style("fill", function(d) { return d.value; });
+      .style("fill", function (d) {
+        return d.value;
+      });
 
     g.append("svg:text")
       .attr("x", legend_item.w / 2)
       .attr("y", legend_item.h / 2)
       .attr("dy", "0.35em")
       .attr("text-anchor", "middle")
-      .text(function(d) { return d.key; });
+      .text(function (d) {
+        return d.key;
+      });
   }
 
-  function toggleLegend () {
-    let legend = containers.base.select("#legend");
+  function toggleLegend() {
+    let legend = containers.base.select(".legend");
     if (legend.style("visibility") === "hidden") {
       legend.style("visibility", "visible");
     } else {
@@ -319,21 +305,21 @@ export default function Sunburst (_container) {
       percentageString = "< 0.1%";
     }
 
-    containers.base.select("#percentage")
+    containers.base.select(".percentage")
       .text(percentageString);
 
-    containers.base.select("#explanation")
+    containers.base.select(".explanation")
       .style("visibility", "visible");
 
     let sequenceArray = d.ancestors().reverse();
-    sequenceArray.shift(); // remove root node from the array
+    sequenceArray.shift();
     updateBreadcrumbs(sequenceArray, percentageString);
 
     containers.vis.selectAll("path")
       .style("opacity", 0.3);
 
     containers.vis.selectAll("path")
-      .filter(function(node) {
+      .filter(function (node) {
         return (sequenceArray.indexOf(node) >= 0);
       })
       .style("opacity", 1);
@@ -343,7 +329,7 @@ export default function Sunburst (_container) {
     containers.vis.select("#trail")
       .style("visibility", "hidden");
 
-    containers.base.select("#explanation")
+    containers.base.select(".explanation")
       .style("visibility", "visible");
 
     containers.vis.selectAll("path").on("mouseover", null);
@@ -356,11 +342,11 @@ export default function Sunburst (_container) {
         d3.select(this).on("mouseover", mouseover);
       });
 
-    containers.vis.select("#explanation")
+    containers.vis.select(".explanation")
       .style("visibility", "hidden");
   }
 
-  function csvToJson (csv) {
+  function csvToJson(csv) {
     let json = {"name": "root", "children": []};
     for (let i = 0; i < csv.length; i++) {
       let sequence = csv[i][0];
@@ -396,7 +382,6 @@ export default function Sunburst (_container) {
     }
     return json;
   }
-
 
   return {
     setConfig,

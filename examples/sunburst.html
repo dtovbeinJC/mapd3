@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Sequences sunburst</title>
+  <link rel="stylesheet" type="text/css"
+        href="https://fonts.googleapis.com/css?family=Open+Sans:400,600">
+  <link rel="stylesheet" href="../dist/mapd3.css">
+</head>
+<body>
+
+<div class="chart chart1"></div>
+<div class="chart chart0"></div>
+<div class="chart chart2"></div>
+<div class="chart chart3"></div>
+
+<script src="../dist/mapd3.js"></script>
+
+<script>
+
+  const keyType = "number";
+  const AREA = "area";
+  const STACKED_AREA = "stackedArea";
+  const LINE = "line";
+
+  const sunburstChartDataManager = mapd3.DataManager();
+  const lineChartDataManager = mapd3.DataManager();
+
+  sunburstChartDataManager.loadCSVData("../mock_data/csv-sunburst.csv")
+    .then(csv => {
+      sunburstChart0.setData(sunburstChart0.csvToJson(csv));
+    })
+    .catch(error => {
+      console.log(error);
+    });
+
+  lineChartDataManager.loadCSVData("../mock_data/csv-line.csv")
+    .then(csv => {
+      lineChart0.setData(lineChart0.csvToJson(csv));
+      areaChart0.setData(areaChart0.csvToJson(csv));
+    })
+    .catch(error => {
+      console.log(error);
+    });
+
+  const lineChart0 = mapd3.Chart(document.querySelector(".chart0"))
+    .setConfig({
+      keyType,
+      chartType: LINE
+    });
+
+  const sunburstChart0 = mapd3.Sunburst(document.querySelector(".chart1"))
+    .setConfig({
+      keyType,
+      chartType: STACKED_AREA
+    });
+
+  const areaChart0 = mapd3.Chart(document.querySelector(".chart2"))
+    .setConfig({
+      keyType,
+      chartType: AREA
+    });
+
+</script>
+</body>
+</html>

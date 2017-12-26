@@ -19,7 +19,7 @@ mapd3.Chart(document.querySelector('.chart'))
     })
     .setData(data)
 ```
-A complete example, including the use of a data generator, is available in the [/dev](dev/line_chart.html) folder.
+A complete example, including the use of a data generator, is available in the [/dev](examples/line_chart.html) folder.
 
 ## Development
 Look in [/package.json](package.json) for the build scripts. It is available as an [npm](https://www.npmjs.com/package/mapd3) package.

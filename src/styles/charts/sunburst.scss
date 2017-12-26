@@ -1,0 +1,57 @@
+.sunburst {
+  float: left;
+
+  .sidebar {
+    float: right;
+    width: 100px;
+
+    text {
+      font-weight: 600;
+      fill: #fff;
+    }
+  }
+
+  .sequence {
+    width: 600px;
+    height: 70px;
+  }
+
+  .legend {
+    padding: 10px 0 0 3px;
+
+    text {
+      font-weight: 600;
+      fill: #fff;
+    }
+  }
+
+  .chart {
+    position: relative;
+
+    path {
+      stroke: #fff;
+    }
+
+    .explanation {
+      position: absolute;
+      width: 140px;
+      text-align: center;
+      color: #666;
+      z-index: -1;
+
+      .percentage {
+        font-size: 2.5em;
+      }
+    }
+  }
+}
+
+
+
+
+
+
+
+
+
+

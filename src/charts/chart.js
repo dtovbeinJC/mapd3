@@ -1,27 +1,23 @@
-import * as d3 from "./helpers/d3-service"
+import * as d3 from "./helpers/d3-service";
+import {colors} from "./helpers/colors";
+import {keys} from "./helpers/constants";
+import {cloneData, override, throttle, rebind} from "./helpers/common";
+import Scale from "./scale";
+import Line from "./line";
+import Bar from "./bar";
+import Sunburst from "./sunburst";
+import Axis from "./axis";
+import Tooltip from "./tooltip";
+import Legend from "./legend";
+import Brush from "./brush";
+import Hover from "./hover";
+import Binning from "./binning";
+import DomainEditor from "./domain-editor";
+import BrushRangeEditor from "./brush-range-editor";
+import Label from "./label";
+import DataManager from "./data-manager";
 
-import {colors} from "./helpers/colors"
-
-
-import {keys} from "./helpers/constants"
-import {cloneData, override, throttle, rebind} from "./helpers/common"
-
-import Scale from "./scale"
-import Line from "./line"
-import Bar from "./bar"
-import Sunburst from "./sunburst"
-import Axis from "./axis"
-import Tooltip from "./tooltip"
-import Legend from "./legend"
-import Brush from "./brush"
-import Hover from "./hover"
-import Binning from "./binning"
-import DomainEditor from "./domain-editor"
-import BrushRangeEditor from "./brush-range-editor"
-import Label from "./label"
-import DataManager from "./data-manager"
-
-export default function Chart (_container) {
+export default function Chart(_container) {
 
   let config = {
     // common
@@ -33,8 +29,8 @@ export default function Chart (_container) {
     },
     width: 800,
     height: 500,
-    keyType: "time",
-    chartType: null, // line, area, stackedLine, stackedArea
+    keyType: "",
+    chartType: "",
     ease: d3.easeLinear,
 
     // intro animation
@@ -141,14 +137,12 @@ export default function Chart (_container) {
 
   // events
   const dispatcher = d3.dispatch("mouseOverPanel", "mouseOutPanel", "mouseMovePanel")
-  const dataManager = DataManager()
+  const dataManager = DataManager();
 
   function render () {
-
-    buildSVG()
+    buildSVG();
 
     if (dataObject.dataBySeries) {
-      console.log("buildChart")
       buildChart()
     }
 
@@ -156,8 +150,6 @@ export default function Chart (_container) {
   }
 
   function buildSVG () {
-    console.log(`chart > buildSVG ${config.chartType}`);
-
     const w = config.width === "auto" ? cache.container.clientWidth : config.width
     const h = config.height === "auto" ? cache.container.clientHeight : config.height
     cache.chartWidth = Math.max(w - config.margin.left - config.margin.right, 0)
@@ -166,10 +158,7 @@ export default function Chart (_container) {
     let template;
 
     if (!cache.svg) {
-
-      //if (config.chartType === "line" || config.chartType === "area" || config.chartType === "stackedArea") {
-
-        template = `<div class="mapd3 mapd3-container">
+      template = `<div class="mapd3 mapd3-container">
           <div class="header-group" style="display: none;"></div>
             <svg class="chart">
               <g class="chart-group"></g>
@@ -179,32 +168,16 @@ export default function Chart (_container) {
               <rect class="masking-rectangle"></rect>
             </svg>
         </div>`
-      //} else {
-        /*template = `<div id="main">
-          <div id="sequence"></div>
-          <div id="chart">
-            <div id="explanation" style="visibility: hidden;">
-              <span id="percentage"></span><br/>
-              of visits begin with this sequence of pages
-            </div>
-          </div>
-        </div>
-        <div id="sidebar">
-          <input type="checkbox" id="togglelegend"> Legend<br/>
-          <div id="legend" style="visibility: hidden;"></div>
-        </div>`*/
-      //}
 
       const base = d3.select(cache.container)
-          .html(template)
-
+        .html(template);
 
       cache.container = base.select(".mapd3-container")
-          .style("position", "relative")
+        .style("position", "relative")
 
       cache.svg = base.select("svg")
       cache.headerGroup = base.select(".header-group")
-          .style("position", "absolute")
+        .style("position", "absolute")
       cache.panel = cache.svg.select(".panel-group")
       cache.chart = cache.svg.select(".chart-group")
 
@@ -212,8 +185,8 @@ export default function Chart (_container) {
 
       Object.assign(components, {
         scale: Scale(),
-        axis: (config.chartType === "line" || config.chartType === "area" || config.chartType === "stackedArea") ? Axis(cache.chart) : null,
-        line: (config.chartType === "line" || config.chartType === "area" || config.chartType === "stackedArea") ? Line(cache.panel) : null,
+        axis: getAxisChart(),
+        line: getLineChart(),
         bar: (config.chartType === "bar") ? Bar(cache.panel) : null,
         sunburst: (config.chartType === "sunburst") ? Sunburst(cache.panel) : null,
         tooltip: Tooltip(cache.container),
@@ -235,9 +208,7 @@ export default function Chart (_container) {
         onLabel: rebind(components.label),
         onPanel: rebind(dispatcher)
       });
-
     }
-
 
     cache.svg
       .attr("width", config.width)
@@ -252,14 +223,12 @@ export default function Chart (_container) {
       .select(".panel-background")
       .attr("width", cache.chartWidth)
       .attr("height", cache.chartHeight)
-      .attr("fill", "transparent")
+      .attr("fill", "transparent");
 
-
-    return this
+    return this;
   }
 
-  function buildChart () {
-
+  function buildChart() {
     if (components.scale) {
       components.scale
         .setConfig(config)
@@ -275,48 +244,21 @@ export default function Chart (_container) {
         .drawGridLines()
     }
 
-    /*
-    // TODO refactor 'config.chartType'
-    if (components[config.chartType]) {
-      components[config.chartType]
-        .setConfig(config)
-        .setScales(scales)
-        .loadData()
-        .setData(dataObject)
-        .drawMarks()
-    }
-    */
-
-
-
-    if(components.line) {
+    if (components.line) {
       components.line
         .setConfig(config)
         .setScales(scales)
-        .loadData()
         .setData(dataObject)
         .drawMarks()
     }
 
-    if(components.bar) {
+    if (components.bar) {
       components.bar
         .setConfig(config)
         .setScales(scales)
-        .loadData()
         .setData(dataObject)
         .drawMarks()
     }
-
-    if(components.sunburst) {
-      console.log("ENTRA A SUNBURST!!!!")
-      components.sunburst
-        .setConfig(config)
-        .setScales(scales)
-        .loadData()
-        .setData(dataObject)
-        //.drawMarks()
-    }
-
 
     components.tooltip
       .setConfig(config)
@@ -325,11 +267,11 @@ export default function Chart (_container) {
       .setVisibility(config.tooltipIsEnabled)
 
     const legendContent = dataObject.dataBySeries
-        .map((d) => ({
-          id: d.id,
-          key: d.key,
-          label: d.label
-        }))
+      .map((d) => ({
+        id: d.id,
+        key: d.key,
+        label: d.label
+      }))
 
     components.legend
       .setConfig(config)
@@ -387,26 +329,11 @@ export default function Chart (_container) {
     return this
   }
 
-  function setData (_data) {
-    console.log(_data);
-    dataObject.data = cloneData(_data[keys.SERIES])
-    const cleanedData = dataManager.cleanData(_data, config.keyType)
-    Object.assign(dataObject, cleanedData)
-
-    render()
-    return this
-  }
-
-  function loadData () {
-    if(config.fileData === null) throw new Error("There is no file to be loaded. `fileData` variable should be set.");
-
-    d3.text(config.fileData, (text) => {
-        console.log("entra")
-        let csv = d3.csvParseRows(text)
-        let json = buildHierarchy(csv)
-        console.log(csv)
-        //createVisualization(json);
-      })
+  function setData(_data) {
+    dataObject.data = cloneData(_data[keys.SERIES]);
+    const cleanedData = dataManager.cleanData(_data, config.keyType);
+    Object.assign(dataObject, cleanedData);
+    render();
     return this
   }
 
@@ -427,7 +354,7 @@ export default function Chart (_container) {
     }
   }
 
-  function addEvents () {
+  function addEvents() {
     const THROTTLE_DELAY = 20
     const throttledDispatch = throttle((...args) => {
       dispatcher.call(...args)
@@ -442,7 +369,9 @@ export default function Chart (_container) {
       })
       .on("mousemove.dispatch", () => {
         const [mouseX, mouseY] = d3.mouse(cache.panel.node())
-        if (!dataObject.data) { return }
+        if (!dataObject.data) {
+          return
+        }
         const xPosition = mouseX
         const dataPoint = dataManager.getNearestDataPoint(xPosition, dataObject, scales, config.keyType)
 
@@ -474,26 +403,32 @@ export default function Chart (_container) {
     cache.svg.on(".", null).remove()
   }
 
-  function csvToJson (csv) {
-    let json = {"series": []};
+  function getAxisChart () {
+    const { chartType } = config;
+    return (chartType === "line" || chartType === "area" || chartType === "stackedArea") ? Axis(cache.chart) : null;
+  }
 
+  function getLineChart () {
+    const { chartType } = config;
+    return (chartType === "line" || chartType === "area" || chartType === "stackedArea") ? Line(cache.panel) : null;
+  }
+
+  function csvToJson (csv) {
+    //let json = {"series": []};
     let labels = [];
     let addLabel;
 
     csv.forEach((row, index) => {
-      if(index === 0) {
+      if (index === 0) {
         labels.push(getObjectToPush(row[0], index, 0, []));
       } else {
         addLabel = true;
         labels.forEach(label => {
-          if(row[0] === label["label"]) {
+          if (row[0] === label["label"]) {
             addLabel = false;
           }
         });
-
-        if(addLabel) {
-          labels.push(getObjectToPush(row[0], index, 0, []));
-        }
+        if (addLabel) labels.push(getObjectToPush(row[0], index, 0, []));
       }
     });
 
@@ -501,7 +436,7 @@ export default function Chart (_container) {
     labels.forEach((label, index) => {
       __index__ = 0;
       csv.forEach((key, value) => {
-        if(label["label"] === key[0]) {
+        if (label["label"] === key[0]) {
           label["values"].push({
             value: key[1],
             key: __index__
@@ -509,13 +444,12 @@ export default function Chart (_container) {
           __index__++;
         }
       })
-    })
+    });
 
-    json["series"] = labels;
-    return json;
+    return { "series": [...labels] };
   }
 
-  function getObjectToPush(label, id, group, values) {
+  function getObjectToPush (label, id, group, values) {
     return {
       label,
       id,
@@ -524,14 +458,13 @@ export default function Chart (_container) {
     };
   }
 
-    return {
-      render,
-      setConfig,
-      setData,
-      on,
-      destroy,
-      getEvents,
-      loadData,
-      csvToJson
+  return {
+    render,
+    setConfig,
+    setData,
+    on,
+    getEvents,
+    csvToJson,
+    destroy
   }
 }

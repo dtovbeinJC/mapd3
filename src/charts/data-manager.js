@@ -7,7 +7,7 @@ import {invertScale, sortData, cloneData} from "./helpers/common"
 export default function DataManager () {
   /* eslint-disable no-magic-numbers */
   let config = {
-    keyType: "number", // number, string, time,
+    keyType: "number",
     range: [0, 100],
     pointCount: 200,
     groupCount: 2,
@@ -200,8 +200,6 @@ export default function DataManager () {
       })
     })
   }
-
-
 
   return {
     generateTestDataset,

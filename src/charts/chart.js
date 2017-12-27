@@ -139,7 +139,7 @@ export default function Chart(_container) {
   const dispatcher = d3.dispatch("mouseOverPanel", "mouseOutPanel", "mouseMovePanel")
   const dataManager = DataManager();
 
-  function render () {
+  function render() {
     buildSVG();
 
     if (dataObject.dataBySeries) {
@@ -149,7 +149,7 @@ export default function Chart(_container) {
     return this
   }
 
-  function buildSVG () {
+  function buildSVG() {
     const w = config.width === "auto" ? cache.container.clientWidth : config.width
     const h = config.height === "auto" ? cache.container.clientHeight : config.height
     cache.chartWidth = Math.max(w - config.margin.left - config.margin.right, 0)
@@ -337,7 +337,7 @@ export default function Chart(_container) {
     return this
   }
 
-  function triggerIntroAnimation () {
+  function triggerIntroAnimation() {
     if (config.isAnimated) {
       cache.maskingRectangle = cache.svg.select(".masking-rectangle")
         .attr("width", cache.chartWidth - 2)
@@ -382,39 +382,38 @@ export default function Chart(_container) {
       })
   }
 
-  function getEvents () {
+  function getEvents() {
     if (!cache.svg) {
       render()
     }
     return eventCollector
   }
 
-  function on (...args) {
+  function on(...args) {
     dispatcher.on(...args)
     return this
   }
 
-  function setConfig (_config) {
+  function setConfig(_config) {
     config = override(config, _config)
     return this
   }
 
-  function destroy () {
+  function destroy() {
     cache.svg.on(".", null).remove()
   }
 
-  function getAxisChart () {
-    const { chartType } = config;
+  function getAxisChart() {
+    const {chartType} = config;
     return (chartType === "line" || chartType === "area" || chartType === "stackedArea") ? Axis(cache.chart) : null;
   }
 
-  function getLineChart () {
-    const { chartType } = config;
+  function getLineChart() {
+    const {chartType} = config;
     return (chartType === "line" || chartType === "area" || chartType === "stackedArea") ? Line(cache.panel) : null;
   }
 
-  function csvToJson (csv) {
-    //let json = {"series": []};
+  function csvToJson(csv) {
     let labels = [];
     let addLabel;
 
@@ -446,10 +445,10 @@ export default function Chart(_container) {
       })
     });
 
-    return { "series": [...labels] };
+    return {"series": [...labels]};
   }
 
-  function getObjectToPush (label, id, group, values) {
+  function getObjectToPush(label, id, group, values) {
     return {
       label,
       id,

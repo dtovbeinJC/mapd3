@@ -370,7 +370,7 @@ export default function Sunburst(_container) {
             }
           }
           if (!foundChild) {
-            childNode = {"name": nodeName, "children": []};
+            childNode = {"name": nodeName, "series": []};
             children.push(childNode);
           }
           currentNode = childNode;
